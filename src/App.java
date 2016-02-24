@@ -17,7 +17,8 @@ import javax.swing.JFrame;
 
 /**
  *
- * @author Rubén
+ * @author Rubén de la pena A00816682
+ * @author Cristy Jimenez  A01191954
  */
 public class App extends JFrame implements Runnable, KeyListener{
     private int iCaidas; // Numero de caídas
