@@ -283,7 +283,7 @@ public class App extends JFrame implements Runnable, KeyListener{
     public void actualizaMalos(){
         // Actualiza malos
         for(Malo malMalo : lklMalos){
-            int iVelMalo = (7 - iVidas) * 3;
+            int iVelMalo = (7 - iVidas) * 2;
             // Actualizo la posicion de los malos
             malMalo.setY(malMalo.getY() + iVelMalo);
         }
@@ -344,6 +344,13 @@ public class App extends JFrame implements Runnable, KeyListener{
                     if(balBala.getVivo()){
                         balBala.paint(graDibujo, this);
                     }
+                }
+                
+                // Dibuja vidas
+                for(int iC = 0; iC < iVidas; iC ++){
+                    URL urlImagenCora = this.getClass().getResource("Cora.png");
+                    Image imaCora = Toolkit.getDefaultToolkit().getImage(urlImagenCora);
+                    graDibujo.drawImage(imaCora, 15+iC * 35, 35, 30, 30, this);
                 }
                                 
                 graDibujo.drawString("Puntos: " + iPuntos, 10, 50);
