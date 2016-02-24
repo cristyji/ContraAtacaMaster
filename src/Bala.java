@@ -26,16 +26,16 @@ public class Bala extends Base{
             // LA BALA TIENE UN ANGULO DE 135 GRADOS
             case 'i':
                 this.setX(this.getX() - iVel);
-                this.setY(this.getY() + iVel);
+                this.setY(this.getY() - iVel);
                 break;
             // LA BALA TIENE UN ANGULO DE 45 GRADOS
             case 'd':
                 this.setX(this.getX() + iVel);
-                this.setY(this.getY() + iVel);
+                this.setY(this.getY() - iVel);
                 break;
             // LA BALA TIENE UN ANGULO DE 90 GRADOS
-            case 'l':
-                this.setY(this.getY() + iVel);
+            case 'c':
+                this.setY(this.getY() - iVel);
                 break;
         }
     }

@@ -21,13 +21,13 @@ import javax.swing.JFrame;
  */
 public class App extends JFrame implements Runnable, KeyListener{
     private int iCaidas; // Numero de caídas
-    private int iDireccion; // Direccion del jugador
+    private int iDirPrincipal; // Direccion del jugador
     private int iVidas; // Vidas del jugador
     private int iPuntos; // Puntos del jugador
+    private boolean bPausa; // Pausa del juego
+    private boolean bOtraBala; // Permite disparar solo una bala
     private static final int WIDTH = 800;    //Ancho del JFrame
     private static final int HEIGHT = 600;    //Alto del JFrame
-    
-    private boolean bPausa;
 
     private LinkedList <Malo>lklMalos; // Lista de los malos
     private LinkedList <Bala>lklBalas; // Lista de las balas
@@ -54,10 +54,11 @@ public class App extends JFrame implements Runnable, KeyListener{
         
         // Valores iniciales de las variables
         iCaidas = 0;
-        iDireccion = 0;
+        iDirPrincipal = 0;
         iPuntos = 0;
         iVidas = 5;
-        bPausa = false; 
+        bPausa = false;
+        bOtraBala = true;
         
         inicializaObjetos();
         
@@ -90,8 +91,8 @@ public class App extends JFrame implements Runnable, KeyListener{
         int iRandom = alAzar(10,15); // Malos normales
         int iRandEsp = alAzar(1,2); // Malos que siguen
         
-        // Imagen del malo
-        URL urlImagenMalo = this.getClass().getResource("Bananas.png");
+        // Imagen del malo especial
+        URL urlImagenMalo = this.getClass().getResource("Parrot.gif");
         
         // Defino y creo malos especiales
         for(int iC = 0; iC < iRandEsp; iC++){
@@ -101,6 +102,9 @@ public class App extends JFrame implements Runnable, KeyListener{
             // Añado malo a la lista
             lklMalos.add(malMalo);
         }
+        
+        // Imagen del malo normal
+        urlImagenMalo = this.getClass().getResource("Bananas.png");
         
         // Defino y creo los malos normales
         for(int iC = 0; iC < iRandom - iRandEsp; iC++){
@@ -116,14 +120,14 @@ public class App extends JFrame implements Runnable, KeyListener{
         // Se posicionan los malos
         for(Malo malMalo : lklMalos){
             malMalo.setX(alAzar(0, getWidth() - malMalo.getAncho()));
-            malMalo.setY(alAzar(0 - malMalo.getAlto(), 5) * 50);
+            malMalo.setY(0 - alAzar(0, 5) * 100);
         }
     }
     
     public void reposicionaMalo(Malo malMalo){
         // Se posicionan el malo
         malMalo.setX(alAzar(0, getWidth() - malMalo.getAncho()));
-        malMalo.setY(alAzar(0 - malMalo.getAlto(), 5) * 100);
+        malMalo.setY(0 - alAzar(0, 5) * 100);
     }
     
     public void reposicionaPrincipal(){
@@ -158,8 +162,13 @@ public class App extends JFrame implements Runnable, KeyListener{
     }
     
     public void checaColisionMalos(){
-        // Checa colision de la fruta
+        // Checa colision de los malos
         for(Malo malMalo : lklMalos){
+            // Revisa contacto con el borde inferior
+            if(malMalo.getY() + malMalo.getAlto() >= getHeight()) {
+                reposicionaMalo(malMalo);
+            }
+            
             // Checo la colision entre principal y malo
             if(basPrincipal.colisiona(malMalo)) {
                 iPuntos -= 1;
@@ -174,7 +183,23 @@ public class App extends JFrame implements Runnable, KeyListener{
     }
     
     public void checaColisionBalas(){
-        
+        for(Bala balBala:lklBalas){
+            if(balBala.getY() <= 0){
+                lklBalas.remove(balBala);
+            } else if(balBala.getX() >= 0){
+                lklBalas.remove(balBala);
+            } else if(balBala.getX() + balBala.getAncho() >= getWidth()){
+                lklBalas.remove(balBala);
+            }
+           
+            for(Malo malMalo:lklMalos){
+                if(balBala.colisiona(malMalo)){
+                    lklBalas.remove(balBala);
+                    reposicionaMalo(malMalo);
+                    iPuntos += 10;
+                }
+            }
+        }
     }
     
     /**
@@ -260,38 +285,17 @@ public class App extends JFrame implements Runnable, KeyListener{
     }
     
     public void actualizaMalos(){
-        int iVel = (iVidas - 4) * 5;
         // Actualiza malos
-        if (iVidas > 0){
-            for(Malo malMalo : lklMalos){
-                if( malMalo.getTipo() != 'n'){
-                //VA SIGUIENDO AL PERSONAJE (MONKEY)
-                if (basPrincipal.getX() < malMalo.getX())
-                {
-                    malMalo.setX(malMalo.getX() - 3 * iVel);
-                } else if (basPrincipal.getX() > malMalo.getX()){
-                    malMalo.setX(malMalo.getX() + 3 * iVel);
-                }
-
-                if (basPrincipal.getY() < malMalo.getY())
-                {
-                    malMalo.setY(malMalo.getY() - 3 * iVel);
-                } else if (basPrincipal.getY() > malMalo.getY()){
-                    malMalo.setY(malMalo.getY() + 3 * iVel);
-                }
-
-                }
-                else {
-                    // Actualizo la posicion de los malos
-                    malMalo.setY(malMalo.getY() + iVel);
-                }
-            }
+        for(Malo malMalo : lklMalos){
+            int iVelMalo = (iVidas - 4) * 5;
+            // Actualizo la posicion de los malos
+            malMalo.setY(malMalo.getY() + iVelMalo);
         }
     }
     
     public void actualizaPrincipal(){
         // Actualizo posicion del principal        
-        switch(iDireccion){
+        switch(iDirPrincipal){
             case 0:
                 break;
             case 1:
@@ -338,10 +342,17 @@ public class App extends JFrame implements Runnable, KeyListener{
                     if(malMalo.getVivo()){
                         malMalo.paint(graDibujo, this);
                     }
-                }            
-                graDibujo.drawString("Puntos: " + iPuntos, 10, 20);
-                graDibujo.drawString("Vidas: " + (6 - iVidas), 10, 40);
-                graDibujo.drawString("Caidas: " + iCaidas, 10, 60);
+                }
+                // Dibuja las frutas
+                for(Bala balBala : lklBalas){
+                    if(balBala.getVivo()){
+                        balBala.paint(graDibujo, this);
+                    }
+                }
+                                
+                graDibujo.drawString("Puntos: " + iPuntos, 10, 50);
+                graDibujo.drawString("Vidas: " + iVidas, 10, 70);
+                graDibujo.drawString("Caidas: " + iCaidas, 10, 90);
             } // sino se ha cargado se dibuja un mensaje 
             else {
                 //Da un mensaje mientras se carga el dibujo	
@@ -354,9 +365,9 @@ public class App extends JFrame implements Runnable, KeyListener{
     
     /**
      * App
-     *
+     * 
      * Contructor
-     *
+     * 
      */
     public App(){
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -394,6 +405,7 @@ public class App extends JFrame implements Runnable, KeyListener{
                 System.out.println("Hubo un error en el juego " +
                         iexError.toString());
             }
+
         }
     }
 
@@ -401,7 +413,19 @@ public class App extends JFrame implements Runnable, KeyListener{
     public void keyTyped(KeyEvent e) {
         
     }
-
+    
+    public void disparaBala(char cDir){
+        if(bOtraBala){
+            // Creo una bala
+            URL urlImagenBala = this.getClass().getResource("Coconut.png");
+            Bala balBala = new Bala(basPrincipal.getX(), basPrincipal.getY(),
+                Toolkit.getDefaultToolkit().getImage(urlImagenBala), cDir, 5);
+            // Añado malo a la lista
+            lklBalas.add(balBala);
+            bOtraBala = false;
+        }
+    }
+    
     /**
      * keyPressed
      *
@@ -415,14 +439,27 @@ public class App extends JFrame implements Runnable, KeyListener{
         
         switch (iTecla) {
             case KeyEvent.VK_LEFT:
-                iDireccion = 1;
+                iDirPrincipal = 1;
                 break;
             case KeyEvent.VK_RIGHT:
-                iDireccion = 2;
+                iDirPrincipal = 2;
+                break;
+            case KeyEvent.VK_P:
+                bPausa = !bPausa;
                 break;
         }
         
-        
+        switch (iTecla) {
+            case KeyEvent.VK_A:
+                disparaBala('i');
+                break;
+            case KeyEvent.VK_SPACE:
+                disparaBala('c');
+                break;
+            case KeyEvent.VK_S:
+                disparaBala('d');
+                break;
+        }
     }
 
     /**
@@ -434,7 +471,8 @@ public class App extends JFrame implements Runnable, KeyListener{
      */
     @Override
     public void keyReleased(KeyEvent e) {
-        iDireccion = 0;
+        iDirPrincipal = 0;
+        bOtraBala = true;
     }
     
     /**
