@@ -186,10 +186,6 @@ public class App extends JFrame implements Runnable, KeyListener{
         for(Bala balBala:lklBalas){
             if(balBala.getY() <= 0){
                 lklBalas.remove(balBala);
-            } else if(balBala.getX() >= 0){
-                lklBalas.remove(balBala);
-            } else if(balBala.getX() + balBala.getAncho() >= getWidth()){
-                lklBalas.remove(balBala);
             }
            
             for(Malo malMalo:lklMalos){
@@ -287,7 +283,7 @@ public class App extends JFrame implements Runnable, KeyListener{
     public void actualizaMalos(){
         // Actualiza malos
         for(Malo malMalo : lklMalos){
-            int iVelMalo = (iVidas - 4) * 5;
+            int iVelMalo = (7 - iVidas) * 3;
             // Actualizo la posicion de los malos
             malMalo.setY(malMalo.getY() + iVelMalo);
         }
