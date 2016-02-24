@@ -26,6 +26,7 @@ public class App extends JFrame implements Runnable, KeyListener{
     private int iPuntos; // Puntos del jugador
     private boolean bPausa; // Pausa del juego
     private boolean bOtraBala; // Permite disparar solo una bala
+    private boolean bMensajeInicio; // Muestra imagen inicio
     private static final int WIDTH = 800;    //Ancho del JFrame
     private static final int HEIGHT = 600;    //Alto del JFrame
 
@@ -59,6 +60,7 @@ public class App extends JFrame implements Runnable, KeyListener{
         iVidas = 5;
         bPausa = false;
         bOtraBala = true;
+        bMensajeInicio = true;
         
         inicializaObjetos();
         
@@ -69,6 +71,12 @@ public class App extends JFrame implements Runnable, KeyListener{
         addKeyListener(this); // AGREGO KEYLISTENER
     }
     
+    /**
+     * inicializaObjetos
+     * 
+     * Inicializa los objetos
+     * 
+     */
     public void inicializaObjetos(){
         // Defino y creo el principal
 	URL urlImagenCanasta = this.getClass().getResource("Monkey.png");
@@ -86,6 +94,12 @@ public class App extends JFrame implements Runnable, KeyListener{
         imaPierde = Toolkit.getDefaultToolkit().getImage(urlImagenPierde);
     }
     
+    /**
+     * inicializaMalos
+     * 
+     * Inicializa a los malos
+     * 
+     */
     public void inicializaMalos(){
         // Genero random de los malos entre 10 y 15
         int iRandom = alAzar(10,15); // Malos normales
@@ -116,20 +130,39 @@ public class App extends JFrame implements Runnable, KeyListener{
         }
     }
     
+    /**
+     * reposicionaMalos
+     * 
+     * Reposiciona a los malos de forma aleatoria
+     * 
+     */
     public void reposicionaMalos(){
         // Se posicionan los malos
         for(Malo malMalo : lklMalos){
             malMalo.setX(alAzar(0, getWidth() - malMalo.getAncho()));
-            malMalo.setY(0 - alAzar(0, 5) * 100);
+            malMalo.setY(0 - malMalo.getAlto() - alAzar(0, 5) * 100);
         }
     }
     
+    /**
+     * reposicionaMalo
+     * 
+     * Se reposiciona un malo de manera aleatoria.
+     * 
+     * @param malMalo es le malo a reposicionar
+     */
     public void reposicionaMalo(Malo malMalo){
         // Se posicionan el malo
         malMalo.setX(alAzar(0, getWidth() - malMalo.getAncho()));
-        malMalo.setY(0 - alAzar(0, 5) * 100);
+        malMalo.setY(0 - malMalo.getAlto() - alAzar(0, 5) * 100);
     }
     
+    /**
+     * reposicionaPrincipal
+     * 
+     * Reposiciona al objeto principal
+     * 
+     */
     public void reposicionaPrincipal(){
         // Se posiciona el principal
         basPrincipal.setY(getHeight() - basPrincipal.getAlto());
@@ -139,9 +172,7 @@ public class App extends JFrame implements Runnable, KeyListener{
     /**
      * checaColision
      * 
-     * Metodo que revisa si la canasta entró en contacto con alguno de los 
-     * bordes definidos o con la fruta o si la fruta entró en contacto con
-     * el borde inferior.
+     * Checa colisiones del principal, los malos y las balas.
      * 
      */
     public void checaColision(){
@@ -150,17 +181,30 @@ public class App extends JFrame implements Runnable, KeyListener{
         checaColisionBalas();
     }
     
+    /**
+     * checaColisionPrincipal
+     * 
+     * Checa colision entre el personaje principal y los bordes.
+     * 
+     */
     public void checaColisionPrincipal(){
         // Checa colision de la canasta con los bordes
         if(basPrincipal.getX() <= 0) { // CHOCA IZQUIERDA
             basPrincipal.setX(0);
         } 
         
-        if(basPrincipal.getX() + basPrincipal.getAncho() >= getWidth()) { // CHOCA DERECHA
+        if(basPrincipal.getX() + 
+                basPrincipal.getAncho() >= getWidth()) { // CHOCA DERECHA
             basPrincipal.setX(getWidth() - basPrincipal.getAncho());
         }
     }
     
+    /**
+     * checaColisionMalos
+     * 
+     * Checa colision entre los malos y los bordes o los malos y el principal.
+     * 
+     */
     public void checaColisionMalos(){
         // Checa colision de los malos
         for(Malo malMalo : lklMalos){
@@ -182,8 +226,15 @@ public class App extends JFrame implements Runnable, KeyListener{
         }
     }
     
+    /**
+     * checaColisionBalas
+     * 
+     * Checa colision entre balas y bordes o balas y malos.
+     * 
+     */
     public void checaColisionBalas(){
-        for(Bala balBala:lklBalas){
+        for(int iC = 0; iC < lklBalas.size(); iC++){
+            Bala balBala = (Bala)lklBalas.get(iC);
             if(balBala.getY() <= 0){
                 lklBalas.remove(balBala);
             }
@@ -274,21 +325,54 @@ public class App extends JFrame implements Runnable, KeyListener{
         return HEIGHT;
     }
     
+    /**
+     * actualiza()
+     * 
+     * Actualiza malos, principal y balas.
+     * 
+     */
     public void actualiza(){
         actualizaMalos();
         actualizaPrincipal();
         actualizaBalas();
     }
     
+    /**
+     * actualizaMalos
+     * 
+     * Actualiza las posiciones de los malos.
+     * 
+     */
     public void actualizaMalos(){
         // Actualiza malos
         for(Malo malMalo : lklMalos){
             int iVelMalo = (7 - iVidas) * 2;
-            // Actualizo la posicion de los malos
-            malMalo.setY(malMalo.getY() + iVelMalo);
+            if(malMalo.getTipo() == 'n'){
+                // Actualizo la posicion de los malos normales
+                malMalo.setY(malMalo.getY() + iVelMalo);
+            } else {
+                // Actualizo la posicion de los malos especiales
+                if(basPrincipal.getX() > malMalo.getX()){
+                    malMalo.setX(malMalo.getX() + iVelMalo);
+                } else {
+                    malMalo.setX(malMalo.getX() - iVelMalo);
+                }
+
+                if(basPrincipal.getY() > malMalo.getY()){
+                    malMalo.setY(malMalo.getY() + iVelMalo);
+                } else {
+                    malMalo.setY(malMalo.getY() - iVelMalo);
+                }
+            }
         }
     }
     
+    /**
+     * actualizaPrincipal
+     * 
+     * Actualiza posicion del personaje principal.
+     * 
+     */
     public void actualizaPrincipal(){
         // Actualizo posicion del principal        
         switch(iDirPrincipal){
@@ -303,6 +387,12 @@ public class App extends JFrame implements Runnable, KeyListener{
         }
     }
     
+    /**
+     * actualizaBalas
+     * 
+     * Actualiza la posicion de las balas existentes.
+     * 
+     */
     public void actualizaBalas(){
         // Actualiza balas
         for(Bala balBala : lklBalas){
@@ -339,6 +429,25 @@ public class App extends JFrame implements Runnable, KeyListener{
                         malMalo.paint(graDibujo, this);
                     }
                 }
+                
+                if(bMensajeInicio){
+                    URL urlImagenInicio = 
+                            this.getClass().getResource("Comienza.png");
+                    Image imaInicio = Toolkit.getDefaultToolkit().
+                            getImage(urlImagenInicio);
+                    graDibujo.drawImage(imaInicio, 0, 0, getWidth(), 
+                            getHeight(), this);
+                }
+                
+                if(bPausa){
+                    URL urlImagenPausa = 
+                            this.getClass().getResource("Pausa.png");
+                    Image imaPausa = Toolkit.getDefaultToolkit().
+                            getImage(urlImagenPausa);
+                    graDibujo.drawImage(imaPausa, 0, 0, getWidth(), 
+                            getHeight(), this);
+                }
+                
                 // Dibuja las frutas
                 for(Bala balBala : lklBalas){
                     if(balBala.getVivo()){
@@ -349,13 +458,14 @@ public class App extends JFrame implements Runnable, KeyListener{
                 // Dibuja vidas
                 for(int iC = 0; iC < iVidas; iC ++){
                     URL urlImagenCora = this.getClass().getResource("Cora.png");
-                    Image imaCora = Toolkit.getDefaultToolkit().getImage(urlImagenCora);
+                    Image imaCora = Toolkit.getDefaultToolkit().
+                            getImage(urlImagenCora);
                     graDibujo.drawImage(imaCora, 15+iC * 35, 35, 30, 30, this);
                 }
                                 
-                graDibujo.drawString("Puntos: " + iPuntos, 10, 50);
-                graDibujo.drawString("Vidas: " + iVidas, 10, 70);
-                graDibujo.drawString("Caidas: " + iCaidas, 10, 90);
+                graDibujo.drawString("Puntos: " + iPuntos, getWidth()-100, 50);
+                //graDibujo.drawString("Vidas: " + iVidas, 10, 70);
+                //graDibujo.drawString("Caidas: " + iCaidas, 10, 90);
             } // sino se ha cargado se dibuja un mensaje 
             else {
                 //Da un mensaje mientras se carga el dibujo	
@@ -369,7 +479,7 @@ public class App extends JFrame implements Runnable, KeyListener{
     /**
      * App
      * 
-     * Contructor
+     * Contructor del app
      * 
      */
     public App(){
@@ -391,10 +501,18 @@ public class App extends JFrame implements Runnable, KeyListener{
         appNuevo.setVisible(true);
     }
     
+    /**
+     * run
+     *
+     * Metodo sobrescrito de la clase <code>Thread</code>.<P>
+     * En este metodo se ejecuta el hilo, que contendrá las instrucciones
+     * de nuestro juego.
+     *
+     */
     @Override
     public void run() {
         while (iVidas > 0) {
-            if(!bPausa){
+            if(!bPausa && !bMensajeInicio){
                 actualiza();
                 checaColision();
             }
@@ -411,12 +529,53 @@ public class App extends JFrame implements Runnable, KeyListener{
 
         }
     }
-
+    
+    /**
+     * reiniciaJuego
+     * 
+     * Reinicia el juego.
+     * 
+     */
+    public void reiniciaJuego(){
+        // Crea listas encadenadas
+        lklMalos = new LinkedList<Malo>();
+        lklBalas = new LinkedList<Bala>();
+        
+        // Valores iniciales de las variables
+        iCaidas = 0;
+        iDirPrincipal = 0;
+        iPuntos = 0;
+        iVidas = 5;
+        bPausa = false;
+        bOtraBala = true;
+        bMensajeInicio = true;
+        
+        inicializaObjetos();
+        
+        // Reposiciona objetos
+        reposicionaMalos();
+        reposicionaPrincipal();
+    }
+    
+    /**
+     * keyTyped
+     * 
+     * 
+     * 
+     * @param e es el KeyEvent
+     */
     @Override
     public void keyTyped(KeyEvent e) {
         
     }
     
+    /**
+     * disparaBala
+     * 
+     * Función que crea bala.
+     * 
+     * @param cDir 
+     */
     public void disparaBala(char cDir){
         if(bOtraBala){
             // Creo una bala
@@ -447,12 +606,28 @@ public class App extends JFrame implements Runnable, KeyListener{
             case KeyEvent.VK_RIGHT:
                 iDirPrincipal = 2;
                 break;
-            case KeyEvent.VK_P:
-                bPausa = !bPausa;
-                break;
         }
         
         switch (iTecla) {
+            case KeyEvent.VK_R:
+                if(iVidas <= 0){
+                    reiniciaJuego();
+                }
+                break;
+            case KeyEvent.VK_C:
+                if(bMensajeInicio){
+                    bMensajeInicio = false;
+                }
+                break;
+            case KeyEvent.VK_P:
+                if(!bMensajeInicio){
+                    bPausa = !bPausa;
+                }
+                break;
+        }
+        
+        if(!bPausa && !bMensajeInicio){
+            switch (iTecla) {
             case KeyEvent.VK_A:
                 disparaBala('i');
                 break;
@@ -462,6 +637,7 @@ public class App extends JFrame implements Runnable, KeyListener{
             case KeyEvent.VK_S:
                 disparaBala('d');
                 break;
+            }
         }
     }
 
